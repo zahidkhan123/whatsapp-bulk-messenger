@@ -1,32 +1,25 @@
 'use client';
 import React, {useState} from 'react';
 import parsePhoneNumber from 'libphonenumber-js';
+import axios from 'axios';
 import styles from './PhoneNumberVerifier.module.css';
 const sendMessage = async (apiKey, phone, message) => {
-  // const body = {
-  //   api_key: apiKey,
-  //   mobile: phone,
-  //   message: message,
-  //   priority: 0,
-  //   type: 0,
-  // };
-
   try {
-    // Use fetch to send the message
-    const response = await fetch(
-      `https://whatsapp247.com/api/send.php?api_key=${apiKey}&mobile=${phone}&message=${message}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const params = new URLSearchParams({
+      api_key: apiKey,
+      mobile: phone,
+      message: message,
+    });
 
-    return console.log(response.json()); // Assuming the API returns JSON
+    const response = await axios.get('https://whatsapp247.com/api/send.php', {
+      params: params,
+    });
+
+    // Axios automatically parses the JSON response, so you can directly return it
+    return response.data;
   } catch (error) {
     console.log('Error sending message:', error);
-    return {error};
+    return {error: error.message || 'Error sending message'};
   }
 };
 
