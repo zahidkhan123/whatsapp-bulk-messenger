@@ -3,28 +3,30 @@ import React, {useState} from 'react';
 import parsePhoneNumber from 'libphonenumber-js';
 import styles from './PhoneNumberVerifier.module.css';
 const sendMessage = async (apiKey, phone, message) => {
-  const body = {
-    api_key: apiKey,
-    mobile: phone,
-    message: message,
-    priority: 0,
-    type: 0,
-  };
+  // const body = {
+  //   api_key: apiKey,
+  //   mobile: phone,
+  //   message: message,
+  //   priority: 0,
+  //   type: 0,
+  // };
 
   try {
     // Use fetch to send the message
-    const response = await fetch('https://whatsapp247.com/api/send.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
+    const response = await fetch(
+      `https://whatsapp247.com/api/send.php?api_key=${apiKey}&mobile=${phone}&message=${message}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-    return response.json(); // Assuming the API returns JSON
+    return console.log(response.json()); // Assuming the API returns JSON
   } catch (error) {
-    console.error('Error sending message:', error);
-    return {error: 'Error sending message'};
+    console.log('Error sending message:', error);
+    return {error};
   }
 };
 
@@ -57,14 +59,17 @@ const PhoneNumberVerifier = () => {
     setInvalidNumbers(invalid);
 
     for (let i = 0; i < valid.length; i++) {
-      setLoading(true);
-      const delayTime = 60000 + Math.random() * 30000;
-      await delay(delayTime);
-
+      if (i > 0) {
+        const delayTime = 6000 + Math.random() * 3000;
+        await delay(delayTime);
+      } else {
+        setLoading(true);
+      }
       const response = await sendMessage(apiUrl, valid[i], message);
       console.log(response);
     }
-    setLoading(false);
+
+    setLoading(false); // Reset loading state after all messages have been sent
   };
 
   return (
