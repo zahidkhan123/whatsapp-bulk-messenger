@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import parsePhoneNumber from 'libphonenumber-js';
 import styles from './PhoneNumberVerifier.module.css';
 const sendMessage = async (apiKey, phone, message) => {
@@ -24,9 +24,11 @@ const sendMessage = async (apiKey, phone, message) => {
     return response.json(); // Assuming the API returns JSON
   } catch (error) {
     console.error('Error sending message:', error);
-    return { error: 'Error sending message' };
+    return {error: 'Error sending message'};
   }
 };
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const PhoneNumberVerifier = () => {
   const [apiUrl, setApiUrl] = useState('');
@@ -34,6 +36,7 @@ const PhoneNumberVerifier = () => {
   const [numbers, setNumbers] = useState('');
   const [validNumbers, setValidNumbers] = useState([]);
   const [invalidNumbers, setInvalidNumbers] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const handleVerification = async () => {
     const numbersArray = numbers.split(',');
@@ -43,13 +46,8 @@ const PhoneNumberVerifier = () => {
     for (let i = 0; i < numbersArray.length; i++) {
       const number = numbersArray[i].trim();
       const phoneNumber = parsePhoneNumber(number);
-
       if (phoneNumber) {
         valid.push(number);
-
-        // Send message after verification (adjust API key as needed)
-        const response = await sendMessage(apiUrl, number, message);
-        console.log(response); // Log or handle the response
       } else {
         invalid.push(number);
       }
@@ -57,13 +55,23 @@ const PhoneNumberVerifier = () => {
 
     setValidNumbers(valid);
     setInvalidNumbers(invalid);
+
+    for (let i = 0; i < valid.length; i++) {
+      setLoading(true);
+      const delayTime = 60000 + Math.random() * 30000;
+      await delay(delayTime);
+
+      const response = await sendMessage(apiUrl, valid[i], message);
+      console.log(response);
+    }
+    setLoading(false);
   };
 
   return (
     <div className={styles.container}>
       <h1>Whatsapp Bulk Messenger</h1>
       <div>
-        <label htmlFor='apiUrl'>API URL:</label>
+        <label htmlFor='apiUrl'>Whatsapp API Key:</label>
         <input
           type='text'
           id='apiUrl'
@@ -87,7 +95,10 @@ const PhoneNumberVerifier = () => {
           onChange={(e) => setNumbers(e.target.value)}
         />
       </div>
-      <button onClick={handleVerification}>Verify Numbers</button>
+
+      <button disabled={loading} onClick={handleVerification}>
+        {loading ? 'Loading...' : 'Send Message'}
+      </button>
 
       <div className={styles.results}>
         <div className={styles.valid}>
