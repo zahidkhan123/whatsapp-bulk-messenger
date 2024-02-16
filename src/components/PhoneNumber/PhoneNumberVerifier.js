@@ -2,6 +2,31 @@
 import React, { useState } from 'react';
 import parsePhoneNumber from 'libphonenumber-js';
 import styles from './PhoneNumberVerifier.module.css';
+const sendMessage = async (apiKey, phone, message) => {
+  const body = {
+    api_key: apiKey,
+    mobile: phone,
+    message: message,
+    priority: 0,
+    type: 0,
+  };
+
+  try {
+    // Use fetch to send the message
+    const response = await fetch('https://whatsapp247.com/api/send.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    return response.json(); // Assuming the API returns JSON
+  } catch (error) {
+    console.error('Error sending message:', error);
+    return { error: 'Error sending message' };
+  }
+};
 
 const PhoneNumberVerifier = () => {
   const [apiUrl, setApiUrl] = useState('');
@@ -10,19 +35,25 @@ const PhoneNumberVerifier = () => {
   const [validNumbers, setValidNumbers] = useState([]);
   const [invalidNumbers, setInvalidNumbers] = useState([]);
 
-  const handleVerification = () => {
+  const handleVerification = async () => {
     const numbersArray = numbers.split(',');
     const valid = [];
     const invalid = [];
 
-    numbersArray.forEach((number) => {
+    for (let i = 0; i < numbersArray.length; i++) {
+      const number = numbersArray[i].trim();
       const phoneNumber = parsePhoneNumber(number);
+
       if (phoneNumber) {
-        valid.push(number.trim());
+        valid.push(number);
+
+        // Send message after verification (adjust API key as needed)
+        const response = await sendMessage(apiUrl, number, message);
+        console.log(response); // Log or handle the response
       } else {
-        invalid.push(number.trim());
+        invalid.push(number);
       }
-    });
+    }
 
     setValidNumbers(valid);
     setInvalidNumbers(invalid);
@@ -30,6 +61,7 @@ const PhoneNumberVerifier = () => {
 
   return (
     <div className={styles.container}>
+      <h1>Whatsapp Bulk Messenger</h1>
       <div>
         <label htmlFor='apiUrl'>API URL:</label>
         <input
@@ -41,8 +73,7 @@ const PhoneNumberVerifier = () => {
       </div>
       <div>
         <label htmlFor='message'>Message:</label>
-        <input
-          type='text'
+        <textarea
           id='message'
           value={message}
           onChange={(e) => setMessage(e.target.value)}
